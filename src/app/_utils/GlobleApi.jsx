@@ -15,4 +15,37 @@ const getCategoryList = () =>
     return res.data.data;
   });
 
-export default { getCategory, getSliders, getCategoryList };
+const getAllProducts = () =>
+  axiosClient.get("/products?populate=*").then((res) => {
+    return res.data.data;
+  });
+
+const getProductsByCategory = (category) =>
+  axiosClient
+    .get("/products?filters[categories][name][$in]=" + category + "&populate=*")
+    .then((res) => {
+      return res.data.data;
+    });
+
+const createUser = (username, email, password) =>
+  axiosClient.post("/auth/local/register", {
+    username,
+    email,
+    password,
+  });
+
+const SignIn = (email, password) =>
+  axiosClient.post("/auth/local", {
+    identifier: email,
+    password,
+  });
+
+export default {
+  getCategory,
+  getSliders,
+  getCategoryList,
+  getAllProducts,
+  getProductsByCategory,
+  createUser,
+  SignIn,
+};

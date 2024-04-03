@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, SearchIcon, ShoppingBag } from "lucide-react";
+import {
+  CircleUserIcon,
+  LayoutGrid,
+  SearchIcon,
+  ShoppingBag,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +19,13 @@ import {
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import GlobleApi from "../_utils/GlobleApi";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const Header = () => {
   const [categoryList, setCategoryList] = useState([]);
+  const isLogin = sessionStorage.getItem("jwt") ? true : false;
+  const router = useRouter();
 
   // call the getCategoryList Method
   useEffect(() => {
@@ -29,13 +38,17 @@ const Header = () => {
       setCategoryList(resp.data.data);
     });
   };
+  const onSignOut = () => {
+    sessionStorage.clear();
+    router.push("/sign-in");
+  };
 
   return (
     <>
       <div className="flex justify-between pr-4 md:pr-8 shadow-sm">
         <div className="flex items-center gap-2 md:gap-5 p-3 md:p-5">
           {/* Left Logo */}
-          <div className="flex items-center cursor-pointer">
+          <Link href={"/"} className="flex items-center cursor-pointer">
             <Image src="/logo.png" width={50} height={50} alt="logo" />
             <div className="flex flex-col">
               <p className="text-orange-600 md:text-2xl text-xl font-semibold ">
@@ -47,7 +60,7 @@ const Header = () => {
                 </p>
               </span>
             </div>
-          </div>
+          </Link>
           {/* category bar */}
 
           {/* DropDown menu */}
@@ -62,20 +75,27 @@ const Header = () => {
               <DropdownMenuLabel>Browse Category</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {categoryList.map((category, index) => (
-                <DropdownMenuItem key={index} className="flex gap-3 cursor-pointer">
-                  <Image
-                    src={
-                      process.env.NEXT_PUBLIC_BASE_URL +
-                        category?.attributes.icon.data[0]
-                        .attributes.url
-                    }
-                    unoptimized={true}
-                    alt="icon"
-                    width={23}
-                    height={23}
-                  />
-                  <h1 className="text-lg">{category?.attributes?.name}</h1>
-                </DropdownMenuItem>
+                <Link
+                  key={index}
+                  href={"/products-category/" + category.attributes.name}
+                >
+                  <DropdownMenuItem
+                    key={index}
+                    className="flex gap-3 cursor-pointer"
+                  >
+                    <Image
+                      src={
+                        process.env.NEXT_PUBLIC_BASE_URL +
+                        category?.attributes.icon.data[0].attributes.url
+                      }
+                      unoptimized={true}
+                      alt="icon"
+                      width={23}
+                      height={23}
+                    />
+                    <h1 className="text-lg">{category?.attributes?.name}</h1>
+                  </DropdownMenuItem>
+                </Link>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -94,7 +114,27 @@ const Header = () => {
           <h2 className="flex items-center gap-2">
             <ShoppingBag /> 0{" "}
           </h2>
-          <Button>Login</Button>
+          {!isLogin ? (
+            <Link href={"/sign-in"}>
+              <Button>Login</Button>
+            </Link>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="outline-none border-none">
+                {" "}
+                <CircleUserIcon className="bg-green-100 p-2 rounded-full text-primary h-12 w-12 cursor-pointer" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <DropdownMenuItem>My Order</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onSignOut()}>
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </>
