@@ -40,6 +40,22 @@ const SignIn = (email, password) =>
     password,
   });
 
+const addToCart = (data, jwt) =>
+  axiosClient.post("/user-carts", data, {
+    headers: {
+      Authorization: "Bearer " + jwt,
+    },
+  });
+
+const getCartItems = (userId, jwt) => axiosClient.get("/user-carts?filters[userId][$eq]=" + userId + "&populate=*", {
+      headers: {
+        Authorization: "Bearer " + jwt,
+      },
+    })
+    .then((res) => {
+      return res.data.data;
+    });
+
 export default {
   getCategory,
   getSliders,
@@ -48,4 +64,6 @@ export default {
   getProductsByCategory,
   createUser,
   SignIn,
+  addToCart,
+  getCartItems,
 };

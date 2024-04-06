@@ -5,7 +5,7 @@ import {
   CircleUserIcon,
   LayoutGrid,
   SearchIcon,
-  ShoppingBag,
+  ShoppingCart,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -17,15 +17,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import GlobleApi from "../_utils/GlobleApi";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { UpdateCartContext } from "../_context/UpdateCartContext";
 
 const Header = () => {
   const [categoryList, setCategoryList] = useState([]);
   const isLogin = sessionStorage.getItem("jwt") ? true : false;
   const router = useRouter();
+  const [totalCartItem, setTotalCartItem] = useState(0);
+  const user = JSON.parse(sessionStorage.getItem("user"));
+  const jwt = sessionStorage.getItem("jwt");
+  // Update Cart section
+  const { updateCart, setUpdateCart } = useContext(UpdateCartContext);
 
   // call the getCategoryList Method
   useEffect(() => {
@@ -42,7 +48,15 @@ const Header = () => {
     sessionStorage.clear();
     router.push("/sign-in");
   };
+  useEffect(() => {
+    getCartItemss();
+  }, [updateCart]);
 
+  const getCartItemss = async () => {
+    let cartItemList = await GlobleApi.getCartItems(user.id, jwt);
+    console.log(cartItemList);
+    setTotalCartItem(cartItemList?.length);
+  };
   return (
     <>
       <div className="flex justify-between pr-4 md:pr-8 shadow-sm">
@@ -112,7 +126,10 @@ const Header = () => {
         </div>
         <div className="flex gap-4 items-center">
           <h2 className="flex items-center gap-2">
-            <ShoppingBag /> 0{" "}
+            <ShoppingCart />
+            <span className="bg-primary text-white px-2 rounded-full">
+              {totalCartItem}
+            </span>
           </h2>
           {!isLogin ? (
             <Link href={"/sign-in"}>

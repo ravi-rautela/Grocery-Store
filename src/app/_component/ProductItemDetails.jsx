@@ -1,10 +1,16 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ShoppingBasket } from "lucide-react";
+import { LoaderCircle, ShoppingBasket } from "lucide-react";
 import Image from "next/image";
-import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useContext, useState } from "react";
+import GlobleApi from "../_utils/GlobleApi";
+import { toast } from "sonner";
+import { UpdateCartContext } from "../_context/UpdateCartContext";
 
+const jwt = sessionStorage.getItem("jwt");
+const user = JSON.parse(sessionStorage.getItem("user"));
 const ProductItemDetails = ({ product }) => {
   const [productPrice, setProductPrice] = useState(
     product.attributes.sellingPrice
@@ -13,6 +19,41 @@ const ProductItemDetails = ({ product }) => {
   );
 
   const [quantity, setQuatity] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  // Update Cart section
+  const { updateCart, setUpdateCart } = useContext(UpdateCartContext);
+
+  const addToCart = () => {
+    setLoading(true);
+    if (!jwt) {
+      router.push("/sign-in");
+      setLoading(false);
+      return;
+    }
+    const data = {
+      data: {
+        quantity: quantity,
+        amount: (quantity * productPrice).toFixed(2),
+        products: product.id,
+        users_permissions_users: user.id,
+        userId: user.id,
+      },
+    };
+
+    GlobleApi.addToCart(data, jwt).then(
+      (res) => {
+        toast("Item added successfully.");
+        setUpdateCart(!updateCart);
+        setLoading(false);
+      },
+      (e) => {
+        toast("Error while adding into cart.");
+        setLoading(false);
+      }
+    );
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 p-5 md:p-7 bg-white text-black">
@@ -65,16 +106,16 @@ const ProductItemDetails = ({ product }) => {
             </button>
           </div>
           <h2 className="mt-2 font-semibold">
-           =
+            =
             <span className="text-green-600 text-xl">
               {" "}
               ${(quantity * productPrice).toFixed(2)}
             </span>
           </h2>
         </div>
-        <Button className="flex gap-4">
+        <Button className="flex gap-4" onClick={() => addToCart()}>
           <ShoppingBasket />
-          Add To Cart
+          {loading ? <LoaderCircle className="animate-spin" /> : "Add To Cart"}
         </Button>
         <h2>
           <span className="font-bold">Category: </span>
